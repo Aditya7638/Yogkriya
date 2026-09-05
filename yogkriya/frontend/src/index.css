@@ -1,0 +1,63 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400;1,600&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --bg: #fafaf9;
+    --surface: #ffffff;
+    --border: #e8e8e0;
+    --text: #1a1a18;
+    --muted: #787870;
+    --primary: #3a7a3a;
+    --accent: #f08c00;
+  }
+  .dark {
+    --bg: #1a1a18;
+    --surface: #2a2a26;
+    --border: #42423c;
+    --text: #f5f5f0;
+    --muted: #a8a89a;
+    --primary: #7db87d;
+    --accent: #ffaa1f;
+  }
+  html { scroll-behavior: smooth; }
+  body {
+    background-color: var(--bg);
+    color: var(--text);
+    font-family: 'Inter', system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+}
+
+@layer components {
+  .card {
+    @apply bg-white dark:bg-stone-800 rounded-2xl shadow-card border border-stone-200 dark:border-stone-700;
+  }
+  .btn-primary {
+    @apply bg-forest-600 hover:bg-forest-700 text-white px-5 py-2.5 rounded-xl font-medium transition-all duration-150 active:scale-95;
+  }
+  .btn-secondary {
+    @apply bg-stone-100 hover:bg-stone-200 dark:bg-stone-700 dark:hover:bg-stone-600 text-stone-800 dark:text-stone-100 px-5 py-2.5 rounded-xl font-medium transition-all duration-150;
+  }
+  .btn-accent {
+    @apply bg-saffron-500 hover:bg-saffron-600 text-white px-5 py-2.5 rounded-xl font-medium transition-all duration-150 active:scale-95;
+  }
+  .input {
+    @apply w-full px-4 py-3 rounded-xl border border-stone-200 dark:border-stone-600 bg-white dark:bg-stone-800 text-stone-900 dark:text-stone-100 placeholder-stone-400 focus:outline-none focus:ring-2 focus:ring-forest-400 dark:focus:ring-forest-500 transition;
+  }
+  .badge {
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium;
+  }
+  .badge-green { @apply badge bg-forest-100 text-forest-700 dark:bg-forest-900 dark:text-forest-300; }
+  .badge-amber { @apply badge bg-saffron-100 text-saffron-700 dark:bg-saffron-900 dark:text-saffron-300; }
+  .badge-stone { @apply badge bg-stone-100 text-stone-600 dark:bg-stone-700 dark:text-stone-300; }
+  .section-title {
+    @apply font-display text-3xl font-semibold text-stone-900 dark:text-stone-50;
+  }
+  .page-container {
+    @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
+  }
+}
