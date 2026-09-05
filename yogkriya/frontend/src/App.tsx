@@ -18,6 +18,7 @@ import Routines from './pages/Routines';
 import RoutineDetail from './pages/RoutineDetail';
 import WorkoutSession from './pages/WorkoutSession';
 import Progress from './pages/Progress';
+import VideoSearch from './pages/VideoSearch';
 import { FavoritesPage, ProfilePage } from './pages/FavoritesAndProfile';
 
 const qc = new QueryClient({
@@ -50,6 +51,7 @@ export default function App() {
                   <Route path="/ancient-wisdom/:id" element={<PracticeDetail />} />
                   <Route path="/fitness" element={<FitnessPage />} />
                   <Route path="/fitness/:id" element={<FitnessDetail />} />
+                  <Route path="/video-search" element={<VideoSearch />} />
                   <Route path="/nutrition" element={<Nutrition />} />
                   <Route path="/routines" element={<ProtectedRoute><Routines /></ProtectedRoute>} />
                   <Route path="/routines/:id" element={<ProtectedRoute><RoutineDetail /></ProtectedRoute>} />

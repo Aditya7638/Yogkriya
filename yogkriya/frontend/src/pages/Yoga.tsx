@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { Link } from 'react-router-dom';
 import { yogaApi } from '../api';
 import { ExerciseCard, LoadingPage, EmptyState, FilterBar } from '../components/ui';
-import { Leaf, Search } from 'lucide-react';
+import { Leaf, Search, PlayCircle } from 'lucide-react';
 import type { YogaExercise } from '../types';
 
 const categories = [
@@ -58,6 +59,14 @@ export default function YogaPage() {
             className="input pl-9"
           />
         </div>
+        {search.trim().length >= 2 && (
+          <Link
+            to={`/video-search?topic=${encodeURIComponent(search.trim())}`}
+            className="btn-secondary inline-flex items-center justify-center gap-2 shrink-0"
+          >
+            <PlayCircle size={16} /> Find videos
+          </Link>
+        )}
         <div className="flex flex-col gap-2">
           <FilterBar filters={categories} active={category} onChange={setCategory} />
           <FilterBar filters={difficulties} active={difficulty} onChange={setDifficulty} />

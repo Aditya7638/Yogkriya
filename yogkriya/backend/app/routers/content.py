@@ -67,7 +67,7 @@ def search_exercise_videos(
     q: str = Query(..., min_length=2),
     max_results: int = Query(5, ge=1, le=10),
 ):
-    return search_videos(f"{q} exercise proper form tutorial", max_results)
+    return search_videos(f"{q} exercise proper form tutorial", max_results, topic=q)
 
 
 @exercises_router.get("/{exercise_id}", response_model=GymExerciseOut)

@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useParams, Link } from 'react-router-dom';
 import { exercisesApi } from '../api';
 import { ExerciseCard, LoadingPage, EmptyState, FilterBar, YouTubeEmbed, DifficultyBadge, CategoryBadge, FavoriteButton } from '../components/ui';
-import { Dumbbell, Search, ArrowLeft, AlertCircle } from 'lucide-react';
+import { Dumbbell, Search, ArrowLeft, AlertCircle, PlayCircle } from 'lucide-react';
 import type { GymExercise } from '../types';
 
 const muscles = [
@@ -55,6 +55,14 @@ export function FitnessPage() {
           <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-stone-400" />
           <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search exercises…" className="input pl-9" />
         </div>
+        {search.trim().length >= 2 && (
+          <Link
+            to={`/video-search?topic=${encodeURIComponent(search.trim())}`}
+            className="btn-secondary inline-flex items-center justify-center gap-2 shrink-0"
+          >
+            <PlayCircle size={16} /> Find videos
+          </Link>
+        )}
         <div className="flex flex-col gap-2">
           <div className="overflow-x-auto">
             <FilterBar filters={muscles} active={muscle} onChange={setMuscle} />

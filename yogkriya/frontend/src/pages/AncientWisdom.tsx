@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { Link } from 'react-router-dom';
 import { practicesApi } from '../api';
 import { ExerciseCard, LoadingPage, EmptyState, FilterBar } from '../components/ui';
-import { BookOpen } from 'lucide-react';
+import { BookOpen, PlayCircle, Search } from 'lucide-react';
 import type { AncientPractice } from '../types';
 
 const categories = [
@@ -21,6 +22,7 @@ const difficulties = [
 export default function AncientWisdom() {
   const [category, setCategory] = useState('');
   const [difficulty, setDifficulty] = useState('');
+  const [search, setSearch] = useState('');
 
   const { data, isLoading } = useQuery<AncientPractice[]>({
     queryKey: ['practices', category, difficulty],
@@ -47,9 +49,31 @@ export default function AncientWisdom() {
         </div>
       </div>
 
-      <div className="flex flex-col sm:flex-row gap-3 mb-8">
-        <FilterBar filters={categories} active={category} onChange={setCategory} />
-        <FilterBar filters={difficulties} active={difficulty} onChange={setDifficulty} />
+      <div className="flex flex-col gap-4 mb-8">
+        <div className="flex flex-col sm:flex-row gap-3">
+          <div className="relative flex-1 max-w-sm">
+            <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-stone-400" />
+            <input
+              value={search}
+              onChange={event => setSearch(event.target.value)}
+              placeholder="Search a practice video…"
+              className="input pl-9"
+              autoComplete="off"
+            />
+          </div>
+          {search.trim().length >= 2 && (
+            <Link
+              to={`/video-search?topic=${encodeURIComponent(search.trim())}`}
+              className="btn-secondary inline-flex items-center justify-center gap-2 shrink-0"
+            >
+              <PlayCircle size={16} /> Find videos
+            </Link>
+          )}
+        </div>
+        <div className="flex flex-col sm:flex-row gap-3">
+          <FilterBar filters={categories} active={category} onChange={setCategory} />
+          <FilterBar filters={difficulties} active={difficulty} onChange={setDifficulty} />
+        </div>
       </div>
 
       {!data?.length ? (
