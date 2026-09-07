@@ -1,7 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import settings
-from app.db.database import Base, engine
 from app.models import models  # ensure models are imported
 from app.routers.auth import router as auth_router
 from app.routers.yoga import router as yoga_router
@@ -21,9 +20,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-# Create tables
-Base.metadata.create_all(bind=engine)
 
 # Routers
 app.include_router(auth_router)

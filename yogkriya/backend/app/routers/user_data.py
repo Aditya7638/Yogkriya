@@ -65,7 +65,10 @@ def _enrich_exercises(routine: Routine, db: Session) -> RoutineOut:
         if ex:
             out.exercise_name = ex.name
             out.exercise_description = getattr(ex, "description", None)
-            video = find_exercise_video(ex.name)
+            try:
+                video = find_exercise_video(ex.name)
+            except HTTPException:
+                video = None
             if video:
                 out.video_youtube_id = video["youtube_id"]
         enriched.append(out)
@@ -119,6 +122,14 @@ def add_exercise(
     r = db.query(Routine).filter(Routine.id == routine_id, Routine.user_id == current_user.id).first()
     if not r:
         raise HTTPException(status_code=404, detail="Not found")
+    exercise_models = {
+        "yoga": YogaExercise,
+        "gym": GymExercise,
+        "practice": AncientPractice,
+    }
+    exercise_model = exercise_models.get(data.exercise_type)
+    if not exercise_model or not db.query(exercise_model).filter(exercise_model.id == data.exercise_id).first():
+        raise HTTPException(status_code=404, detail="Exercise not found")
     max_idx = db.query(func.max(RoutineExercise.order_index)).filter(
         RoutineExercise.routine_id == routine_id
     ).scalar() or 0
@@ -163,6 +174,13 @@ def log_session(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
+    if data.routine_id is not None and not db.query(Routine).filter(
+        Routine.id == data.routine_id,
+        Routine.user_id == current_user.id,
+    ).first():
+        raise HTTPException(status_code=404, detail="Routine not found")
+    if data.completed_exercises_count > data.total_exercises:
+        raise HTTPException(status_code=422, detail="Completed exercises cannot exceed total exercises")
     session = WorkoutSession(
         user_id=current_user.id,
         routine_id=data.routine_id,
@@ -274,6 +292,14 @@ def add_favorite(
     ).first()
     if existing:
         return existing
+    item_models = {
+        "yoga": YogaExercise,
+        "gym": GymExercise,
+        "practice": AncientPractice,
+    }
+    item_model = item_models[data.item_type]
+    if not db.query(item_model).filter(item_model.id == data.item_id).first():
+        raise HTTPException(status_code=404, detail="Favorite item not found")
     fav = Favorite(user_id=current_user.id, item_type=data.item_type, item_id=data.item_id)
     db.add(fav)
     db.commit()

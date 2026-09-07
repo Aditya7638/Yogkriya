@@ -1,4 +1,4 @@
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, Field
 from typing import Optional, List, Any
 from datetime import datetime
 
@@ -181,10 +181,10 @@ class AddExerciseToRoutine(BaseModel):
 # Workout Session
 class WorkoutSessionCreate(BaseModel):
     routine_id: Optional[int] = None
-    duration_minutes: int
-    total_exercises: int
-    completed_exercises_count: int
-    completed_exercises: List[dict] = []
+    duration_minutes: int = Field(ge=0)
+    total_exercises: int = Field(ge=0)
+    completed_exercises_count: int = Field(ge=0)
+    completed_exercises: List[dict] = Field(default_factory=list)
 
 
 class WorkoutSessionOut(BaseModel):
@@ -213,8 +213,8 @@ class ProgressStats(BaseModel):
 
 # Favorites
 class FavoriteCreate(BaseModel):
-    item_type: str
-    item_id: int
+    item_type: str = Field(pattern="^(yoga|gym|practice)$")
+    item_id: int = Field(gt=0)
 
 
 class FavoriteOut(BaseModel):

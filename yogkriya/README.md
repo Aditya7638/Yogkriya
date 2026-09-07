@@ -68,6 +68,9 @@ createuser yogkriya -P   # password: yogkriya
 # Set env
 cp ../.env.example .env  # edit DATABASE_URL
 
+# Apply the existing schema
+alembic upgrade head
+
 # Run
 uvicorn app.main:app --reload
 
@@ -132,7 +135,7 @@ GET    /api/favorites
 POST   /api/favorites
 DELETE /api/favorites/{id}
 
-GET    /api/profile  (PUT)
+PUT    /api/profile
 GET    /api/search?q=
 ```
 
