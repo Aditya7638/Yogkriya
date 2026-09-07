@@ -35,6 +35,11 @@ app.include_router(progress_router)
 app.include_router(favorites_router)
 
 
+@app.get("/")
+def root():
+    return {"service": "yogkriya", "status": "ok", "health": "/api/health"}
+
+
 @app.get("/api/health")
 def health():
     return {"status": "ok", "service": "yogkriya"}
