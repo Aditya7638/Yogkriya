@@ -17,6 +17,7 @@ search_router = APIRouter(prefix="/api/search", tags=["search"])
 def list_practices(
     category: Optional[str] = Query(None),
     difficulty: Optional[str] = Query(None),
+    search: Optional[str] = Query(None),
     db: Session = Depends(get_db),
 ):
     q = db.query(AncientPractice)
@@ -24,6 +25,8 @@ def list_practices(
         q = q.filter(AncientPractice.category == category)
     if difficulty:
         q = q.filter(AncientPractice.difficulty == difficulty)
+    if search:
+        q = q.filter(AncientPractice.name.ilike(f"%{search}%"))
     return q.all()
 
 
@@ -32,7 +35,14 @@ def get_practice(practice_id: int, db: Session = Depends(get_db)):
     item = db.query(AncientPractice).filter(AncientPractice.id == practice_id).first()
     if not item:
         raise HTTPException(status_code=404, detail="Not found")
-    return item
+    result = AncientPracticeOut.model_validate(item).model_dump()
+    try:
+        video = find_exercise_video(item.name)
+    except Exception:
+        video = None
+    if video:
+        result["video"] = video
+    return result
 
 
 # Gym Exercises
@@ -53,13 +63,7 @@ def list_exercises(
         q = q.filter(GymExercise.equipment == equipment)
     if search:
         q = q.filter(GymExercise.name.ilike(f"%{search}%"))
-    exercises = q.all()
-    result = []
-    for exercise in exercises:
-        item = GymExerciseOut.model_validate(exercise).model_dump()
-        item["video"] = find_exercise_video(exercise.name)
-        result.append(item)
-    return result
+    return q.all()
 
 
 @exercises_router.get("/videos/search")
@@ -76,7 +80,12 @@ def get_exercise(exercise_id: int, db: Session = Depends(get_db)):
     if not item:
         raise HTTPException(status_code=404, detail="Not found")
     result = GymExerciseOut.model_validate(item).model_dump()
-    result["video"] = find_exercise_video(item.name)
+    try:
+        video = find_exercise_video(item.name)
+    except Exception:
+        video = None
+    if video:
+        result["video"] = video
     return result
 
 

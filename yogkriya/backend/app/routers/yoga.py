@@ -35,7 +35,7 @@ def get_yoga(yoga_id: int, db: Session = Depends(get_db)):
     result = YogaExerciseOut.model_validate(item).model_dump()
     try:
         video = find_exercise_video(item.name)
-    except HTTPException:
+    except Exception:
         video = None
     if video:
         result["video"] = video

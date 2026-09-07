@@ -1,10 +1,12 @@
 import { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { Link } from 'react-router-dom';
+import type { KeyboardEvent } from 'react';
+import { useQuery, keepPreviousData } from '@tanstack/react-query';
+import { Link, useNavigate } from 'react-router-dom';
 import { practicesApi } from '../api';
 import { ExerciseCard, LoadingPage, EmptyState, FilterBar } from '../components/ui';
-import { BookOpen, PlayCircle, Search } from 'lucide-react';
+import { BookOpen, PlayCircle, Search, Loader2 } from 'lucide-react';
 import type { AncientPractice } from '../types';
+import { useDebounce } from '../hooks/useDebounce';
 
 const categories = [
   { value: '', label: 'All' },
@@ -20,16 +22,30 @@ const difficulties = [
 ];
 
 export default function AncientWisdom() {
+  const navigate = useNavigate();
   const [category, setCategory] = useState('');
   const [difficulty, setDifficulty] = useState('');
   const [search, setSearch] = useState('');
+  const debouncedSearch = useDebounce(search, 300);
 
-  const { data, isLoading } = useQuery<AncientPractice[]>({
-    queryKey: ['practices', category, difficulty],
-    queryFn: () => practicesApi.list({ category: category || undefined, difficulty: difficulty || undefined }),
+  const { data, isPending, isFetching } = useQuery<AncientPractice[]>({
+    queryKey: ['practices', category, difficulty, debouncedSearch],
+    queryFn: () => practicesApi.list({
+      category: category || undefined,
+      difficulty: difficulty || undefined,
+      search: debouncedSearch.trim() || undefined,
+    }),
+    placeholderData: keepPreviousData,
   });
 
-  if (isLoading) return <LoadingPage />;
+  const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter' && search.trim().length >= 2) {
+      e.preventDefault();
+      navigate(`/video-search?topic=${encodeURIComponent(search.trim())}`);
+    }
+  };
+
+  if (isPending) return <LoadingPage />;
 
   return (
     <div className="page-container py-12">
@@ -56,10 +72,14 @@ export default function AncientWisdom() {
             <input
               value={search}
               onChange={event => setSearch(event.target.value)}
-              placeholder="Search a practice video…"
-              className="input pl-9"
+              onKeyDown={handleKeyDown}
+              placeholder="Search practices or videos…"
+              className="input pl-9 pr-8"
               autoComplete="off"
             />
+            {isFetching && (
+              <Loader2 size={15} className="absolute right-3 top-1/2 -translate-y-1/2 text-amber-500 animate-spin" />
+            )}
           </div>
           {search.trim().length >= 2 && (
             <Link
@@ -79,7 +99,7 @@ export default function AncientWisdom() {
       {!data?.length ? (
         <EmptyState icon={<BookOpen size={24} className="text-stone-400" />} title="No practices found" description="Try adjusting your filters." />
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+        <div className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 transition-opacity duration-200 ${isFetching ? 'opacity-70' : 'opacity-100'}`}>
           {data.map(p => (
             <ExerciseCard
               key={p.id}

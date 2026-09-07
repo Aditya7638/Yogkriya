@@ -1,10 +1,12 @@
 import { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { useParams, Link } from 'react-router-dom';
+import type { KeyboardEvent } from 'react';
+import { useQuery, keepPreviousData } from '@tanstack/react-query';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import { exercisesApi } from '../api';
 import { ExerciseCard, LoadingPage, EmptyState, FilterBar, YouTubeEmbed, DifficultyBadge, CategoryBadge, FavoriteButton } from '../components/ui';
-import { Dumbbell, Search, ArrowLeft, AlertCircle, PlayCircle } from 'lucide-react';
+import { Dumbbell, Search, ArrowLeft, AlertCircle, PlayCircle, Loader2 } from 'lucide-react';
 import type { GymExercise } from '../types';
+import { useDebounce } from '../hooks/useDebounce';
 
 const muscles = [
   { value: '', label: 'All' },
@@ -25,16 +27,30 @@ const difficulties = [
 ];
 
 export function FitnessPage() {
+  const navigate = useNavigate();
   const [muscle, setMuscle] = useState('');
   const [difficulty, setDifficulty] = useState('');
   const [search, setSearch] = useState('');
+  const debouncedSearch = useDebounce(search, 300);
 
-  const { data, isLoading } = useQuery<GymExercise[]>({
-    queryKey: ['exercises', muscle, difficulty, search],
-    queryFn: () => exercisesApi.list({ muscle_group: muscle || undefined, difficulty: difficulty || undefined, search: search || undefined }),
+  const { data, isPending, isFetching } = useQuery<GymExercise[]>({
+    queryKey: ['exercises', muscle, difficulty, debouncedSearch],
+    queryFn: () => exercisesApi.list({
+      muscle_group: muscle || undefined,
+      difficulty: difficulty || undefined,
+      search: debouncedSearch.trim() || undefined,
+    }),
+    placeholderData: keepPreviousData,
   });
 
-  if (isLoading) return <LoadingPage />;
+  const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter' && search.trim().length >= 2) {
+      e.preventDefault();
+      navigate(`/video-search?topic=${encodeURIComponent(search.trim())}`);
+    }
+  };
+
+  if (isPending) return <LoadingPage />;
 
   return (
     <div className="page-container py-12">
@@ -53,7 +69,17 @@ export function FitnessPage() {
       <div className="flex flex-col sm:flex-row gap-4 mb-8">
         <div className="relative flex-1 max-w-sm">
           <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-stone-400" />
-          <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search exercises…" className="input pl-9" />
+          <input
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            onKeyDown={handleKeyDown}
+            placeholder="Search exercises…"
+            className="input pl-9 pr-8"
+            autoComplete="off"
+          />
+          {isFetching && (
+            <Loader2 size={15} className="absolute right-3 top-1/2 -translate-y-1/2 text-blue-500 animate-spin" />
+          )}
         </div>
         {search.trim().length >= 2 && (
           <Link
@@ -74,7 +100,7 @@ export function FitnessPage() {
       {!data?.length ? (
         <EmptyState icon={<Dumbbell size={24} className="text-stone-400" />} title="No exercises found" description="Try adjusting your filters." />
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+        <div className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 transition-opacity duration-200 ${isFetching ? 'opacity-70' : 'opacity-100'}`}>
           {data.map(e => (
             <ExerciseCard
               key={e.id} id={e.id} name={e.name} description={e.description}
